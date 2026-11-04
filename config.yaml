@@ -1,0 +1,18 @@
+project:
+  name: bengaluru_flood_mapping
+  crs: EPSG:32643
+
+aoi:
+  name: Bengaluru
+  bbox: [77.45, 12.80, 77.80, 13.15]
+
+processing:
+  flood_threshold_db: -2.0
+  min_connected_pixels: 25
+  max_slope_degrees: 8.0
+
+paths:
+  raw: data/raw
+  interim: data/interim
+  processed: data/processed
+  outputs: data/outputs
