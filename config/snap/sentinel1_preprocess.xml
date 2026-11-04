@@ -1,0 +1,91 @@
+<graph id="Sentinel1_GRD_Preprocessing">
+  <version>1.0</version>
+
+  <node id="Read">
+    <operator>Read</operator>
+    <parameters>
+      <file>${input}</file>
+    </parameters>
+  </node>
+
+  <node id="Orbit">
+    <operator>Apply-Orbit-File</operator>
+    <sources>
+      <sourceProduct refid="Read"/>
+    </sources>
+    <parameters>
+      <orbitType>Sentinel Precise (Auto Download)</orbitType>
+      <continueOnFail>false</continueOnFail>
+    </parameters>
+  </node>
+
+  <node id="BorderNoise">
+    <operator>Remove-GRD-Border-Noise</operator>
+    <sources>
+      <sourceProduct refid="Orbit"/>
+    </sources>
+    <parameters>
+      <selectedPolarisations>VV,VH</selectedPolarisations>
+    </parameters>
+  </node>
+
+  <node id="ThermalNoise">
+    <operator>ThermalNoiseRemoval</operator>
+    <sources>
+      <sourceProduct refid="BorderNoise"/>
+    </sources>
+    <parameters>
+      <selectedPolarisations>VV,VH</selectedPolarisations>
+      <removeThermalNoise>true</removeThermalNoise>
+      <outputNoise>false</outputNoise>
+      <reIntroduceThermalNoise>false</reIntroduceThermalNoise>
+      <clipNegativeValues>false</clipNegativeValues>
+    </parameters>
+  </node>
+
+  <node id="Calibration">
+    <operator>Calibration</operator>
+    <sources>
+      <sourceProduct refid="ThermalNoise"/>
+    </sources>
+    <parameters>
+      <selectedPolarisations>VV,VH</selectedPolarisations>
+      <outputSigmaBand>true</outputSigmaBand>
+      <outputGammaBand>false</outputGammaBand>
+      <outputBetaBand>false</outputBetaBand>
+      <outputImageScaleInDb>false</outputImageScaleInDb>
+    </parameters>
+  </node>
+
+  <node id="TerrainCorrection">
+    <operator>Terrain-Correction</operator>
+    <sources>
+      <sourceProduct refid="Calibration"/>
+    </sources>
+    <parameters>
+      <demName>External DEM</demName>
+      <externalDEMFile>${dem}</externalDEMFile>
+      <externalDEMNoDataValue>-9999</externalDEMNoDataValue>
+      <externalDEMApplyEGM>false</externalDEMApplyEGM>
+      <demResamplingMethod>BILINEAR_INTERPOLATION</demResamplingMethod>
+      <imgResamplingMethod>BILINEAR_INTERPOLATION</imgResamplingMethod>
+      <pixelSpacingInMeter>10</pixelSpacingInMeter>
+      <mapProjection>EPSG:32643</mapProjection>
+      <nodataValueAtSea>false</nodataValueAtSea>
+      <saveDEM>true</saveDEM>
+      <saveIncidenceAngleFromEllipsoid>true</saveIncidenceAngleFromEllipsoid>
+      <saveSelectedSourceBand>true</saveSelectedSourceBand>
+    </parameters>
+  </node>
+
+  <node id="Write">
+    <operator>Write</operator>
+    <sources>
+      <sourceProduct refid="TerrainCorrection"/>
+    </sources>
+    <parameters>
+      <file>${output}</file>
+      <formatName>BEAM-DIMAP</formatName>
+    </parameters>
+  </node>
+</graph>
